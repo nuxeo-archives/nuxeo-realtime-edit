@@ -1,0 +1,15 @@
+<?xml version="1.0"?>
+<component name="org.nuxeo.ecm.platform.realtime.edit.doc.contrib">
+
+    <extension target="org.nuxeo.ecm.core.schema.TypeService" point="schema">
+        <schema name="realtime_edit" src="schemas/realtime_edit.xsd" prefix="rtedit"/>
+    </extension>
+
+	<extension target="org.nuxeo.ecm.core.schema.TypeService" point="doctype">
+
+    	<facet name="RealtimeEditable">
+			<schema name="realtime_edit" />
+		</facet>
+    
+    </extension>
+</component>

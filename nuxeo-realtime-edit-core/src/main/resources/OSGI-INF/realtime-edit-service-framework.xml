@@ -1,0 +1,34 @@
+<?xml version="1.0"?>
+
+<component name="org.nuxeo.ecm.platform.realtime.edit.RealtimeEditServiceManager" version="1.0">
+
+  <implementation class="org.nuxeo.ecm.platform.realtime.edit.RealtimeEditServiceManagement" />
+
+  <service>
+      <provide interface="org.nuxeo.ecm.platform.realtime.edit.RealtimeEditServiceManager" />
+  </service>
+    
+  <documentation>
+        The Realtime Edit Service Manager manages registered realtime editing services.
+    </documentation>
+
+    <extension-point name="services">
+        <documentation>
+            The service accepts the registration of realtime editing services;
+        </documentation>
+        <code>
+        </code>
+        <object class="org.nuxeo.ecm.platform.realtime.edit.RealtimeEditServiceDescriptor" />
+
+    </extension-point>
+    
+    <extension-point name="doctypes">
+        <documentation>
+            The service accepts the configuration of realtime editing enabled doctypes;
+        </documentation>
+        <code>
+        </code>
+        <object class="org.nuxeo.ecm.platform.realtime.edit.RealtimeEditableDocTypeDescriptor" />
+    </extension-point>
+    
+</component>
