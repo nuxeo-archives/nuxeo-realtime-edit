@@ -15,8 +15,10 @@ import org.nuxeo.ecm.core.api.ClientException;
 import org.nuxeo.ecm.core.api.DocumentModel;
 import org.nuxeo.ecm.core.api.Lock;
 import org.nuxeo.ecm.core.api.blobholder.BlobHolder;
+import org.nuxeo.ecm.core.api.impl.blob.StringBlob;
 import org.nuxeo.ecm.core.api.local.ClientLoginModule;
 import org.nuxeo.ecm.core.api.model.Property;
+import org.nuxeo.ecm.core.schema.types.primitives.StringType;
 import org.nuxeo.runtime.api.Framework;
 import org.nuxeo.runtime.model.ComponentContext;
 import org.nuxeo.runtime.model.DefaultComponent;
@@ -44,7 +46,7 @@ public class RealtimeEditServiceManagement extends DefaultComponent implements R
 
     private Map<String, RealtimeEditService> services = new HashMap<String, RealtimeEditService>();
 
-    private Map<String, String> doctypeProperties = new HashMap<String, String>();
+    private Map<String, RealtimeEditableDocTypeDescriptor> doctypeProperties = new HashMap<String, RealtimeEditableDocTypeDescriptor>();
 
     @Override
     public void applicationStarted(ComponentContext context) throws Exception {
@@ -77,7 +79,7 @@ public class RealtimeEditServiceManagement extends DefaultComponent implements R
 
     private void registerRealtimeEditableDocType(
             RealtimeEditableDocTypeDescriptor descriptor) {
-        doctypeProperties.put(descriptor.getName(), descriptor.getBlobProperty());
+        doctypeProperties.put(descriptor.getName(), descriptor);
     }
 
     private void registerRealtimeEditService(RealtimeEditServiceDescriptor desc) {
@@ -101,7 +103,7 @@ public class RealtimeEditServiceManagement extends DefaultComponent implements R
         RealtimeEditService service = null;
 
         try {
-            service = Framework.getService(desc.getKlass());
+            service = Framework.getLocalService(desc.getKlass());
             service.setName(desc.getName());
             service.setMimeTypeSupport(desc.getMimeTypes());
         } catch (Exception e) {
@@ -152,7 +154,7 @@ public class RealtimeEditServiceManagement extends DefaultComponent implements R
 
     protected void setRealtimeEditableBlob(DocumentModel document, Blob blob) {
         String doctype = document.getDocumentType().getName();
-        String propertyName = doctypeProperties.get(doctype);
+        String propertyName = doctypeProperties.get(doctype).getBlobProperty();
 
         if (propertyName == null) {
             BlobHolder docBlobHolder = document.getAdapter(BlobHolder.class);
@@ -172,7 +174,9 @@ public class RealtimeEditServiceManagement extends DefaultComponent implements R
 
     protected Blob getRealtimeEditableBlob(DocumentModel document) {
         String doctype = document.getDocumentType().getName();
-        String propertyName = doctypeProperties.get(doctype);
+        RealtimeEditableDocTypeDescriptor doctypeProps = doctypeProperties.get(doctype);
+        String propertyName = doctypeProps.getBlobProperty();
+        String mt = doctypeProps.getMimeType();
 
         Blob blob = null;
 
@@ -183,10 +187,19 @@ public class RealtimeEditServiceManagement extends DefaultComponent implements R
             } catch (ClientException e) {
             }
         } else {
-            Property prop;
             try {
-                prop = document.getProperty(propertyName);
-                blob =  prop.getValue(Blob.class);
+                Property prop = document.getProperty(propertyName);
+
+                if (prop.getType().equals(StringType.INSTANCE)) {
+                    if (mt == null) { // Let's use the mimeTypeProperty
+                        String mtName = doctypeProps.getMimeTypeProperty();
+                        mt = (String) document.getPropertyValue(mtName);
+                    }
+                    blob = new StringBlob(prop.getValue(String.class), mt);
+                } else {
+                    blob = prop.getValue(Blob.class);
+                }
+
             } catch (ClientException e) {
                 // TODO Auto-generated catch block
                 e.printStackTrace();

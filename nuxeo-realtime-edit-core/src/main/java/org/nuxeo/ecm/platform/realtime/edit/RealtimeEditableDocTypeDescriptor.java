@@ -12,6 +12,9 @@ public class RealtimeEditableDocTypeDescriptor {
     @XNode("@blobProperty")
     protected String blobProperty;
 
+    @XNode("@mimeType")
+    protected String mimeType;
+
     @XNode("@mimeTypeProperty")
     protected String mimeTypeProperty;
 
@@ -25,5 +28,9 @@ public class RealtimeEditableDocTypeDescriptor {
 
     public String getMimeTypeProperty() {
         return mimeTypeProperty;
+    }
+
+    public String getMimeType() {
+        return mimeType;
     }
 }
