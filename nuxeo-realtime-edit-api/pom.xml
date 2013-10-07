@@ -6,7 +6,8 @@
     <artifactId>nuxeo-realtime-edit-parent</artifactId>
     <version>5.6-SNAPSHOT</version>
   </parent>
-  <groupId>org.nuxeo.ecm.platform.realtime.edit</groupId>
+
+  
   <artifactId>nuxeo-realtime-edit-api</artifactId>
   <name>nuxeo-realtime-edit-api</name>
   <description/>
