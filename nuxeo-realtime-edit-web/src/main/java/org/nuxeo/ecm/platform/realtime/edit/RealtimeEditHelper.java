@@ -6,6 +6,8 @@ import java.io.Serializable;
 
 import javax.faces.context.ExternalContext;
 import javax.faces.context.FacesContext;
+import javax.servlet.http.Cookie;
+import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -30,9 +32,7 @@ public class RealtimeEditHelper implements Serializable {
 
     @In(create = true, required = false)
     protected transient CoreSession documentManager;
-
     protected MimetypeRegistry mimetypeRegistry;
-
     protected RealtimeEditServiceManager manager;
 
     public String edit(DocumentModel document) throws Exception{
@@ -47,34 +47,38 @@ public class RealtimeEditHelper implements Serializable {
             return null; // TODO
         }
 
-        String sessionId = getRealtimeEditServiceManager().getOrCreateEditingSession(serviceName, document);
-
         documentManager.saveDocument(document);
         documentManager.save();
 
         RealtimeEditService service = getRealtimeEditServiceManager().getService(serviceName);
-
-        String username = documentManager.getPrincipal().getName();
-        String embeddedURL = service.getEmbeddedURL(sessionId, username);
-
-        if (embeddedURL != null) {
-            return "realtime_edit_embedded";
-        } else {
-            String url = service.getURL(sessionId);
-            FacesContext context = FacesContext.getCurrentInstance();
-            ExternalContext eContext = context.getExternalContext();
-            eContext.redirect(url);
-            return url;
+  
+        RealtimeEditSession lastSession = getRealtimeEditServiceManager().getOrCreateEditingSession(serviceName, document);
+        RealtimeEditSession newSession  = service.joinSession(lastSession, documentManager.getPrincipal().getName());
+        
+        if(newSession.hasRealtimeEditCookies()){
+        	
+        	 FacesContext context = FacesContext.getCurrentInstance();
+             ExternalContext eContext = context.getExternalContext();
+             HttpServletResponse response = (HttpServletResponse) eContext.getResponse();
+            
+             Cookie[] cookies = newSession.getRealtimeEditSessionCookies();
+             for (int i = 0; i < cookies.length; i++) {
+				response.addCookie(cookies[i]);
+			}
         }
-
+        
+        return "realtime_edit_embedded";
     }
 
     public String getEmbeddedURL(DocumentModel document) throws Exception {
+    	
         String serviceName = getCurrentEditingService(document);
         RealtimeEditService service = getRealtimeEditServiceManager().getService(serviceName);
-        String sessionId = getCurrentEditingSessionId(document);
-        String username = documentManager.getPrincipal().getName();
-        return service.getEmbeddedURL(sessionId, username);
+        
+        RealtimeEditSession session = getCurrentEditingSession(document);
+        RealtimeEditSession newSession = service.joinSession(session, documentManager.getPrincipal().getName());
+        
+        return newSession.getRealtimeEditSessionURL();
     }
 
     public String save(DocumentModel document) throws Exception {
@@ -95,7 +99,7 @@ public class RealtimeEditHelper implements Serializable {
         return "view_documents";
     }
 
-    public String getCurrentEditingSessionId(DocumentModel document) throws Exception {
+    public RealtimeEditSession getCurrentEditingSession(DocumentModel document) throws Exception {
         String serviceName = getCurrentEditingService(document);
         return getRealtimeEditServiceManager().getCurrentEditingSession(serviceName, document);
     }

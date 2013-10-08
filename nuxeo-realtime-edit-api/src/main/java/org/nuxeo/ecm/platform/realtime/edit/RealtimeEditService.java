@@ -15,17 +15,15 @@ public interface RealtimeEditService extends Component{
 
     public boolean isRealtimeEditable(Blob blob);
 
-    public String createSession(String username, String title, Blob blob) throws ClientException;
+    public RealtimeEditSession createSession(String username, String title, Blob blob) throws ClientException;
 
-    public void updateSession(String sessionId, String username, Blob blob) throws ClientException;
+    public void updateSession(RealtimeEditSession session, String username, Blob blob) throws ClientException;
 
-    public String getURL(String sessionId);
+    public RealtimeEditSession joinSession(RealtimeEditSession session, String userFullName);
 
-    public String getEmbeddedURL(String sessionId, String username);
+    public Blob getSessionBlob(RealtimeEditSession session, String mimeType);
 
-    public Blob getSessionBlob(String sessionId, String mimeType);
+    public void deleteSession(RealtimeEditSession session);
 
-    public void deleteSession(String sessionId);
-
-    public boolean existsSession(String sessionId);
+    public boolean existsSession(RealtimeEditSession session);
 }

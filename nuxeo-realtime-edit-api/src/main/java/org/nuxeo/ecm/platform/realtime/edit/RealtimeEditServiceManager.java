@@ -21,11 +21,11 @@ public interface RealtimeEditServiceManager extends Serializable {
 
     boolean isRealtimeEditable(DocumentModel document);
 
-    String createEditingSession(String serviceName, DocumentModel document) throws ClientException;
+    RealtimeEditSession createEditingSession(String serviceName, DocumentModel document) throws ClientException;
 
-    String getOrCreateEditingSession(String serviceName, DocumentModel document) throws ClientException;
+    RealtimeEditSession getOrCreateEditingSession(String serviceName, DocumentModel document) throws ClientException;
 
-    String getCurrentEditingSession(String serviceName, DocumentModel document);
+    RealtimeEditSession getCurrentEditingSession(String serviceName, DocumentModel document);
 
     String getCurrentEditingService(DocumentModel documentModel);
 

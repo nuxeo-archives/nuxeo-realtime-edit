@@ -225,16 +225,18 @@ public class RealtimeEditServiceManagement extends DefaultComponent implements R
     }
 
     @Override
-    public String getOrCreateEditingSession(String serviceName, DocumentModel document) throws ClientException {
-        String sessionId = getCurrentEditingSession(serviceName, document);
+    public RealtimeEditSession getOrCreateEditingSession(String serviceName, DocumentModel document) throws ClientException {
+    	
+        RealtimeEditSession session = getCurrentEditingSession(serviceName, document);
 
-        if (sessionId != null) {
+        if (session != null) {
+        	
             RealtimeEditService service = getService(serviceName);
-            if (service.existsSession(sessionId)) { // If the session exists
+            if (service.existsSession(session)) { // If the session exists
                 String username = ClientLoginModule.getCurrentPrincipal().getName();
                 Blob blob = getRealtimeEditableBlob(document);
-                service.updateSession(sessionId, username, blob);
-                return sessionId;
+                service.updateSession(session, username, blob);
+                return session;
             }
         }
 
@@ -242,7 +244,8 @@ public class RealtimeEditServiceManagement extends DefaultComponent implements R
     }
 
     @Override
-    public String createEditingSession(String serviceName, DocumentModel document) throws ClientException {
+    public RealtimeEditSession createEditingSession(String serviceName, DocumentModel document) throws ClientException {
+    	
         RealtimeEditService service = getService(serviceName);
         Blob blob = getRealtimeEditableBlob(document);
 
@@ -251,35 +254,35 @@ public class RealtimeEditServiceManagement extends DefaultComponent implements R
         }
 
         String title = document.getId();
-
         String username = ClientLoginModule.getCurrentPrincipal().getName();
 
-        String sessionId = service.createSession(username, title, blob);
+        RealtimeEditSession session = service.createSession(username, title, blob);
 
         if (!document.hasFacet(REALTIME_EDITABLE_FACET)) {
             document.addFacet(REALTIME_EDITABLE_FACET);
         }
 
-        document.setProperty(SCHEMA, SESSION_ID_PROPERTY, sessionId);
+        document.setProperty(SCHEMA, SESSION_ID_PROPERTY, session.getRealtimeSessionID());
         document.setProperty(SCHEMA, SERVICE_NAME_PROPERTY, serviceName);
 
         Lock lock = document.setLock();
 
-        return sessionId;
+        return session;
 
     }
 
     @Override
     public void saveCurrentEditingSession(DocumentModel document) throws ClientException {
+    	
         String serviceName = getCurrentEditingService(document);
-        String sessionId = getCurrentEditingSession(serviceName, document);
+        RealtimeEditSession session = getCurrentEditingSession(serviceName, document);
 
         RealtimeEditService service = getService(serviceName);
 
         Blob curBlob = getRealtimeEditableBlob(document);
         String mimeType = curBlob.getMimeType();
 
-        Blob blob = service.getSessionBlob(sessionId, mimeType);
+        Blob blob = service.getSessionBlob(session, mimeType);
 
         setRealtimeEditableBlob(document, blob);
 
@@ -287,11 +290,12 @@ public class RealtimeEditServiceManagement extends DefaultComponent implements R
 
     @Override
     public void cancelCurrentEditingSession(DocumentModel document) throws ClientException {
+    	
         String serviceName = getCurrentEditingService(document);
-        String sessionId = getCurrentEditingSession(serviceName, document);
+        RealtimeEditSession session = getCurrentEditingSession(serviceName, document);
 
         RealtimeEditService service = getService(serviceName);
-        service.deleteSession(sessionId);
+        service.deleteSession(session);
 
         document.removeFacet(REALTIME_EDITABLE_FACET);
 
@@ -315,18 +319,18 @@ public class RealtimeEditServiceManagement extends DefaultComponent implements R
     }
 
     @Override
-    public String getCurrentEditingSession(String serviceName, DocumentModel document) {
+    public RealtimeEditSession getCurrentEditingSession(String serviceName, DocumentModel document) {
+    	
         if (!document.hasFacet(REALTIME_EDITABLE_FACET)) {
             return null;
         }
 
         try {
-            return (String) document.getProperty(SCHEMA, SESSION_ID_PROPERTY);
+            String sessionID = (String) document.getProperty(SCHEMA, SESSION_ID_PROPERTY);
+            return null; // TODO !
         } catch (ClientException e) {
-
+        	return null;
         }
-
-        return null;
     }
 
     @Override
