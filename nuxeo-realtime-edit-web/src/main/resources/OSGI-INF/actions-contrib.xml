@@ -2,7 +2,7 @@
 
   <extension target="org.nuxeo.ecm.platform.actions.ActionService" point="actions">
      
-    <action id="REALTIME_EDIT" order="1" type="link"
+    <action id="REALTIME_EDIT" order="1" type="fancybox"
       link="#{realtimeEditHelper.edit(currentDocument)}"
       target="_blank"
       icon="/icons/realtime_edit.png" label="command.realtime.edit">

@@ -8,4 +8,8 @@
       <provide interface="org.nuxeo.ecm.platform.realtime.edit.etherpad.EtherpadService" />
   </service>
   
+	<extension-point name="EtherpadServers">
+		<object class="org.nuxeo.ecm.platform.realtime.edit.etherpad.EtherpadServerDescriptor" />
+	</extension-point>
+
 </component>

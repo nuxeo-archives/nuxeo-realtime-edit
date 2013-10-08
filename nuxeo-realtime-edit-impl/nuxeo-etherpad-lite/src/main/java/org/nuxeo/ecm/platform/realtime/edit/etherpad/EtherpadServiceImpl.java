@@ -6,14 +6,21 @@ package org.nuxeo.ecm.platform.realtime.edit.etherpad;
 
 import java.io.IOException;
 import java.net.URLEncoder;
+import java.util.HashMap;
+import java.util.Map;
 
+import org.apache.commons.lang.StringUtils;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.etherpad_lite_client.EPLiteClient;
 import org.etherpad_lite_client.EPLiteException;
 import org.nuxeo.ecm.core.api.Blob;
 import org.nuxeo.ecm.core.api.ClientException;
 import org.nuxeo.ecm.core.api.impl.blob.StringBlob;
 import org.nuxeo.ecm.platform.realtime.edit.AbstractRealtimeEditService;
+import org.nuxeo.runtime.api.Framework;
 import org.nuxeo.runtime.model.ComponentContext;
+import org.nuxeo.runtime.model.ComponentInstance;
 
 /**
  * @author nfgs
@@ -21,20 +28,80 @@ import org.nuxeo.runtime.model.ComponentContext;
 public class EtherpadServiceImpl extends AbstractRealtimeEditService implements
         EtherpadService {
 
+	private static final Log log = LogFactory.getLog(EtherpadServiceImpl.class);
+	private static final String ETHERPAD_EXTENSION_POINT_SERVER = "EtherpadServers";
+	private static final String ETHERPAD_PROPERTY_URL = "nuxeo.realtime-editor.etherpad.url";
+	private static final String ETHERPAD_PROPERTY_API_KEY = "nuxeo.realtime-editor.etherpad.apiKey";
+	
     private EPLiteClient client;
-
-    private String BASE_URL = "http://localhost:9001";
-
-    private String API_KEY = "eHpiOkAIK1ucxZJsCcFEws3pdlty72ab";
-
+    private Map<String, EtherpadServerDescriptor> descriptors;
+    private String defaultDescriptorName;
+    
     @Override
     public void applicationStarted(ComponentContext context) throws Exception {
-
     }
 
-    EPLiteClient getClient() {
+	@Override
+	public void activate(ComponentContext context) throws Exception {
+		super.activate(context);
+		this.defaultDescriptorName = null;
+		if (null == this.descriptors) {
+			this.descriptors = new HashMap<String, EtherpadServerDescriptor>();
+		}
+	}
+	
+	@Override
+	public void deactivate(ComponentContext context) throws Exception {
+		super.deactivate(context);
+		if (null != this.descriptors) {
+			this.descriptors.clear();
+		}
+	}
+
+	@Override
+	public void registerContribution(Object contribution, String extensionPoint, ComponentInstance contributor)
+			throws Exception {
+		if (ETHERPAD_EXTENSION_POINT_SERVER.equals(extensionPoint)) {
+			EtherpadServerDescriptor desc = (EtherpadServerDescriptor) contribution;
+			if (desc.isEnabled()) {
+				this.defaultDescriptorName = desc.getName();
+				this.descriptors.put(desc.getName(), desc);
+			}
+		}
+	}
+
+	@Override
+	public void unregisterContribution(Object contribution, String extensionPoint, ComponentInstance contributor)
+			throws Exception {
+		if (ETHERPAD_EXTENSION_POINT_SERVER.equals(extensionPoint)) {
+			EtherpadServerDescriptor desc = (EtherpadServerDescriptor) contribution;
+			this.descriptors.remove(desc.getName());
+		}
+	}
+
+	@Override
+	public EtherpadServerDescriptor getDescriptor() throws ClientException {
+		if (StringUtils.isNotBlank(this.defaultDescriptorName)) {
+			return this.descriptors.get(this.defaultDescriptorName);
+		} else {
+			log.error("No default Etherpad configuration found");
+			throw new ClientException("No default Etherpad configuration found");
+		}
+	}
+	
+    @Override
+	public String getServerUrl() {
+    	return Framework.getProperty(ETHERPAD_PROPERTY_URL);    		
+	}
+
+	@Override
+	public String getServerApiKey() {
+		return Framework.getProperty(ETHERPAD_PROPERTY_API_KEY);
+	}
+
+	EPLiteClient getClient() {
         if (client == null) {
-            client = new EPLiteClient(BASE_URL, API_KEY);
+            client = new EPLiteClient(getServerUrl(), getServerApiKey());
         }
         return client;
     }
@@ -71,25 +138,25 @@ public class EtherpadServiceImpl extends AbstractRealtimeEditService implements
     @Override
     public String getEmbeddedURL(String sessionId, String username) {
         String url = getURL(sessionId);
-
-        url += "?showControls=true";
-        url += "&showChat=true";
-        url += "&showLineNumbers=false";
-        url += "&useMonospaceFont=false";
-        url += "&userName=" + username;
-        url += "&noColors=false";
-        url += "&userColor=false";
-        url += "&hideQRCode=false";
-        url += "&alwaysShowChat=false";
-
+        
+        try {
+        	url += "?userName=" + username;
+        	Map<String, String> params = getDescriptor().getParams();
+        	for (Map.Entry<String, String> entry : params.entrySet()) { 
+        		url += "&" + entry.getKey() + "=" + entry.getValue();
+        	}
+        } catch (ClientException e) {
+        	log.error("Error while building the embedded URL, error:" + e.getMessage());
+        }
+        
         return url;
     }
 
     @Override
     public String getURL(String sessionId) {
-        return BASE_URL + "/p/" + sessionId;
+        return getServerUrl() + "/p/" + sessionId;
     }
-
+    
     private void deletePad(String padId) throws EPLiteException {
         getClient().deletePad(padId);
     }

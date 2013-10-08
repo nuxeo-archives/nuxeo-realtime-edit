@@ -1,0 +1,24 @@
+<component name="org.nuxeo.ecm.platform.realtime.edit.etherpad.service.default.contrib">
+
+    <require>org.nuxeo.ecm.platform.realtime.edit.etherpad.service</require>
+    
+    <extension target="org.nuxeo.ecm.platform.realtime.edit.etherpad.service" 
+        point="EtherpadServers">
+     
+		<EtherpadServer name="defaultServer" enabled="true">
+			<displayType>fancybox</displayType>
+			<params>
+				<param name="showControls">true</param>		
+				<param name="showChat">true</param>		
+				<param name="showLineNumbers">false</param>		
+				<param name="useMonospaceFont">false</param>		
+				<param name="noColors">false</param>		
+				<param name="userColor">false</param>		
+				<param name="hideQRCode">false</param>		
+				<param name="alwaysShowChat">false</param>		
+			</params>
+		</EtherpadServer>
+   
+    </extension>
+
+</component>

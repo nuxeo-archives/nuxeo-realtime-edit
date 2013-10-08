@@ -5,8 +5,8 @@ Bundle-ClassPath: .
 Bundle-Version: 5.7.qualifier
 Bundle-Name: nuxeo-etherpad-lite-core
 Bundle-ManifestVersion: 2
-Nuxeo-Component: OSGI-INF/etherpad-service.xml,OSGI-INF/realtime-edit-
- service-contrib.xml
 Bundle-SymbolicName: nuxeo-etherpad-lite-core
 Bundle-RequiredExecutionEnvironment: JavaSE-1.6
-
+Nuxeo-Component: OSGI-INF/etherpad-service.xml,
+ OSGI-INF/realtime-edit-service-contrib.xml,
+ OSGI-INF/etherpad-default-service-contrib.xml
