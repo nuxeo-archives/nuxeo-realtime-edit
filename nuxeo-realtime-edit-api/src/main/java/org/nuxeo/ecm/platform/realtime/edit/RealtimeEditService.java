@@ -19,7 +19,7 @@ public interface RealtimeEditService extends Component{
 
     public void updateSession(RealtimeEditSession session, String username, Blob blob) throws ClientException;
 
-    public RealtimeEditSession joinSession(RealtimeEditSession session, String userFullName);
+    public RealtimeEditSession joinSession(RealtimeEditSession session, String userFullName, RealtimeEditedDoc red);
 
     public Blob getSessionBlob(RealtimeEditSession session, String mimeType);
 

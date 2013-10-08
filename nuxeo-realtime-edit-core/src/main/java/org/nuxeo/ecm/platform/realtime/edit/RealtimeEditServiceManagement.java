@@ -24,19 +24,15 @@ import org.nuxeo.runtime.model.ComponentContext;
 import org.nuxeo.runtime.model.DefaultComponent;
 import org.nuxeo.runtime.model.Extension;
 
-
 /**
  * @author nfgs
  */
-public class RealtimeEditServiceManagement extends DefaultComponent implements RealtimeEditServiceManager {
+public class RealtimeEditServiceManagement extends DefaultComponent implements
+        RealtimeEditServiceManager {
 
     private static final long serialVersionUID = 1L;
 
     static final String REALTIME_EDITABLE_FACET = "RealtimeEditable";
-
-    static final String SCHEMA = "realtime_edit";
-    static final String SESSION_ID_PROPERTY = "sessionId";
-    static final String SERVICE_NAME_PROPERTY = "serviceName";
 
     public static String REALTIME_EDIT_DOCTYPES_XP_NAME = "doctypes";
 
@@ -87,7 +83,7 @@ public class RealtimeEditServiceManagement extends DefaultComponent implements R
         if (desc.getName() != null) {
             String name = desc.getName();
 
-            if(!services.containsKey(name)){
+            if (!services.containsKey(name)) {
                 RealtimeEditService service = constructBackend(desc);
                 services.put(name, service);
             }
@@ -139,7 +135,7 @@ public class RealtimeEditServiceManagement extends DefaultComponent implements R
                 return false;
             }
 
-            Blob blob  = getRealtimeEditableBlob(documentModel);
+            Blob blob = getRealtimeEditableBlob(documentModel);
 
             return isRealtimeEditable(blob);
 
@@ -150,7 +146,6 @@ public class RealtimeEditServiceManagement extends DefaultComponent implements R
 
         return isEditable;
     }
-
 
     protected void setRealtimeEditableBlob(DocumentModel document, Blob blob) {
         String doctype = document.getDocumentType().getName();
@@ -209,8 +204,7 @@ public class RealtimeEditServiceManagement extends DefaultComponent implements R
         return blob;
     }
 
-    public boolean isRealtimeEditable(Blob blob)
-            throws ClientException {
+    public boolean isRealtimeEditable(Blob blob) throws ClientException {
         if (blob == null) {
             return false;
         }
@@ -225,12 +219,14 @@ public class RealtimeEditServiceManagement extends DefaultComponent implements R
     }
 
     @Override
-    public RealtimeEditSession getOrCreateEditingSession(String serviceName, DocumentModel document) throws ClientException {
-    	
-        RealtimeEditSession session = getCurrentEditingSession(serviceName, document);
+    public RealtimeEditSession getOrCreateEditingSession(String serviceName,
+            DocumentModel document) throws ClientException {
+
+        RealtimeEditSession session = getCurrentEditingSession(serviceName,
+                document);
 
         if (session != null) {
-        	
+
             RealtimeEditService service = getService(serviceName);
             if (service.existsSession(session)) { // If the session exists
                 String username = ClientLoginModule.getCurrentPrincipal().getName();
@@ -244,26 +240,31 @@ public class RealtimeEditServiceManagement extends DefaultComponent implements R
     }
 
     @Override
-    public RealtimeEditSession createEditingSession(String serviceName, DocumentModel document) throws ClientException {
-    	
+    public RealtimeEditSession createEditingSession(String serviceName,
+            DocumentModel document) throws ClientException {
+
         RealtimeEditService service = getService(serviceName);
         Blob blob = getRealtimeEditableBlob(document);
 
         if (!service.isRealtimeEditable(blob)) {
-            throw new ClientException("Document is not editable by " + serviceName);
+            throw new ClientException("Document is not editable by "
+                    + serviceName);
         }
 
         String title = document.getId();
-        String username = ClientLoginModule.getCurrentPrincipal().getName();
+        String username = document.getCoreSession().getPrincipal().getName();
 
-        RealtimeEditSession session = service.createSession(username, title, blob);
+        RealtimeEditSession session = service.createSession(username, title,
+                blob);
 
         if (!document.hasFacet(REALTIME_EDITABLE_FACET)) {
             document.addFacet(REALTIME_EDITABLE_FACET);
         }
 
-        document.setProperty(SCHEMA, SESSION_ID_PROPERTY, session.getRealtimeSessionID());
-        document.setProperty(SCHEMA, SERVICE_NAME_PROPERTY, serviceName);
+        RealtimeEditedDoc red = document.getAdapter(RealtimeEditedDoc.class);
+        session.updateState(red);
+        red.setSessionId(session.getRealtimeSessionID());
+        red.setServiceName(serviceName);
 
         Lock lock = document.setLock();
 
@@ -272,10 +273,12 @@ public class RealtimeEditServiceManagement extends DefaultComponent implements R
     }
 
     @Override
-    public void saveCurrentEditingSession(DocumentModel document) throws ClientException {
-    	
+    public void saveCurrentEditingSession(DocumentModel document)
+            throws ClientException {
+
         String serviceName = getCurrentEditingService(document);
-        RealtimeEditSession session = getCurrentEditingSession(serviceName, document);
+        RealtimeEditSession session = getCurrentEditingSession(serviceName,
+                document);
 
         RealtimeEditService service = getService(serviceName);
 
@@ -289,10 +292,12 @@ public class RealtimeEditServiceManagement extends DefaultComponent implements R
     }
 
     @Override
-    public void cancelCurrentEditingSession(DocumentModel document) throws ClientException {
-    	
+    public void cancelCurrentEditingSession(DocumentModel document)
+            throws ClientException {
+
         String serviceName = getCurrentEditingService(document);
-        RealtimeEditSession session = getCurrentEditingSession(serviceName, document);
+        RealtimeEditSession session = getCurrentEditingSession(serviceName,
+                document);
 
         RealtimeEditService service = getService(serviceName);
         service.deleteSession(session);
@@ -304,33 +309,24 @@ public class RealtimeEditServiceManagement extends DefaultComponent implements R
     }
 
     @Override
-    public String getCurrentEditingService(DocumentModel document) {
-        if (!document.hasFacet(REALTIME_EDITABLE_FACET)) {
-            return null;
-        }
+    public String getCurrentEditingService(DocumentModel document)
+            throws ClientException {
 
-        try {
-            return (String) document.getProperty(SCHEMA, SERVICE_NAME_PROPERTY);
-        } catch (ClientException e) {
-
-        }
-
-        return null;
+        RealtimeEditedDoc red = document.getAdapter(RealtimeEditedDoc.class);
+        return red == null ? null : red.getServiceName();
     }
 
     @Override
-    public RealtimeEditSession getCurrentEditingSession(String serviceName, DocumentModel document) {
-    	
+    public RealtimeEditSession getCurrentEditingSession(String serviceName,
+            DocumentModel document) {
+
         if (!document.hasFacet(REALTIME_EDITABLE_FACET)) {
             return null;
         }
 
-        try {
-            String sessionID = (String) document.getProperty(SCHEMA, SESSION_ID_PROPERTY);
-            return null; // TODO !
-        } catch (ClientException e) {
-        	return null;
-        }
+        RealtimeEditedDoc red = document.getAdapter(RealtimeEditedDoc.class);
+        // return red == null ? null : red.getSessionId();
+        return null; // TODO !
     }
 
     @Override
@@ -339,8 +335,7 @@ public class RealtimeEditServiceManagement extends DefaultComponent implements R
             Object[] contribs = extension.getContributions();
             for (Object contrib : contribs) {
                 if (contrib instanceof RealtimeEditServiceDescriptor) {
-                    unregisterRealtimeEditService(
-                            (RealtimeEditServiceDescriptor) contrib);
+                    unregisterRealtimeEditService((RealtimeEditServiceDescriptor) contrib);
                 }
             }
         }
@@ -348,8 +343,7 @@ public class RealtimeEditServiceManagement extends DefaultComponent implements R
             Object[] contribs = extension.getContributions();
             for (Object contrib : contribs) {
                 if (contrib instanceof RealtimeEditableDocTypeDescriptor) {
-                    unregisterRealtimeEditableDocType(
-                            (RealtimeEditableDocTypeDescriptor) contrib);
+                    unregisterRealtimeEditableDocType((RealtimeEditableDocTypeDescriptor) contrib);
                 }
             }
         }
@@ -361,11 +355,10 @@ public class RealtimeEditServiceManagement extends DefaultComponent implements R
 
     }
 
-
-    private void unregisterRealtimeEditService(RealtimeEditServiceDescriptor desc) {
+    private void unregisterRealtimeEditService(
+            RealtimeEditServiceDescriptor desc) {
         services.remove(desc.getName());
     }
-
 
     @Override
     public boolean isRealtimeEditServiceAvailable() {

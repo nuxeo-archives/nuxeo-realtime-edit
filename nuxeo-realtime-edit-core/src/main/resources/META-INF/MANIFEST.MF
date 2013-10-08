@@ -4,7 +4,10 @@ Bundle-ActivationPolicy: lazy
 Bundle-ClassPath: .
 Bundle-Version: 5.7
 Bundle-Name: nuxeo-realtime-edit-core
-Nuxeo-Component: OSGI-INF/realtime-editable-doc.xml,OSGI-INF/realtime-edit-service-framework.xml,OSGI-INF/realtime-edit-service-contrib.xml
+Nuxeo-Component: OSGI-INF/realtime-editable-doc.xml,
+ OSGI-INF/realtime-edit-service-framework.xml,
+ OSGI-INF/realtime-edit-service-contrib.xml,
+ OSGI-INF/adapter-contrib.xml
 Bundle-ManifestVersion: 2
 Bundle-SymbolicName: org.nuxeo.platform.realtime.edit.core;singleton:=true
 Bundle-RequiredExecutionEnvironment: JavaSE-1.6

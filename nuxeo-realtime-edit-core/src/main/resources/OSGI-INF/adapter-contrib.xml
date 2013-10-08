@@ -1,0 +1,10 @@
+
+<component name="org.nuxeo.ecm.platform.realtime.edit">
+
+  <extension target="org.nuxeo.ecm.core.api.DocumentAdapterService"
+    point="adapters">
+    <adapter class="org.nuxeo.ecm.platform.realtime.edit.RealtimeEditedDoc"
+      factory="org.nuxeo.ecm.platform.realtime.edit.RealtimeEditedDocFactory" />
+  </extension>
+
+</component>

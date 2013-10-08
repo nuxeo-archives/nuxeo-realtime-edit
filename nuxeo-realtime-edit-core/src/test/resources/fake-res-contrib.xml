@@ -1,0 +1,20 @@
+<component name="fake-realtime-edit-service-component">
+
+
+  <implementation class="org.nuxeo.ecm.platform.realtime.edit.FakeRealtimeEditService" />
+
+  <service>
+      <provide interface="org.nuxeo.ecm.platform.realtime.edit.FakeRealtimeEditService" />
+  </service>
+
+
+    <extension target="org.nuxeo.ecm.platform.realtime.edit.RealtimeEditServiceManager" point="services">
+        <service name="etherpad" class="org.nuxeo.ecm.platform.realtime.edit.FakeRealtimeEditService">
+          <supports>
+            <mimeType>text/plain</mimeType>
+            <mimeType>text/html</mimeType>
+          </supports>
+        </service>
+  </extension>
+
+</component>

@@ -1,11 +1,28 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<xs:schema
-        xmlns:nxs="http://www.nuxeo.org/ecm/schemas/realtime_edit/"
-        targetNamespace="http://www.nuxeo.org/ecm/schemas/realtime_edit/"
-        xmlns:xs="http://www.w3.org/2001/XMLSchema"
-        >
+<xs:schema xmlns:nxs="http://www.nuxeo.org/ecm/schemas/realtime_edit/"
+  targetNamespace="http://www.nuxeo.org/ecm/schemas/realtime_edit/"
+  xmlns:xs="http://www.w3.org/2001/XMLSchema">
 
-    <xs:element name="sessionId" type="xs:string" />
-    <xs:element name="serviceName" type="xs:string" />
+
+  <xs:complexType name="serviceParam">
+    <xs:sequence>
+      <xs:element name="name" type="xs:string" />
+      <xs:element name="value" type="xs:string" />
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="paramList">
+    <xs:sequence>
+      <xs:element name="item" type="nxs:serviceParam" minOccurs="0"
+        maxOccurs="unbounded" />
+    </xs:sequence>
+  </xs:complexType>
+
+
+  <xs:element name="sessionId" type="xs:string" />
+  <xs:element name="serviceName" type="xs:string" />
+
+  <xs:element name="params" type="nxs:paramList"></xs:element>
+
 
 </xs:schema>

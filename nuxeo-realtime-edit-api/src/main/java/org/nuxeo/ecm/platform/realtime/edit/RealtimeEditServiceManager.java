@@ -27,7 +27,7 @@ public interface RealtimeEditServiceManager extends Serializable {
 
     RealtimeEditSession getCurrentEditingSession(String serviceName, DocumentModel document);
 
-    String getCurrentEditingService(DocumentModel documentModel);
+    String getCurrentEditingService(DocumentModel documentModel) throws ClientException;
 
     void saveCurrentEditingSession(DocumentModel document) throws ClientException;
 
