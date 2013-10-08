@@ -21,3 +21,6 @@ target
 *.gpd.*
 *cpJar*
 dependency-tree.log
+bin/
+pojo-bin/
+seam-bin/
