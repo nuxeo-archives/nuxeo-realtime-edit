@@ -1,8 +1,8 @@
 <component name="org.nuxeo.ecm.platform.realtime.edit.actions">
 
   <extension target="org.nuxeo.ecm.platform.actions.ActionService" point="actions">
-     
-    <action id="REALTIME_EDIT" order="1" type="fancybox"
+
+    <action id="REALTIME_EDIT" order="1" type="link"
       link="#{realtimeEditHelper.edit(currentDocument)}"
       target="_blank"
       icon="/icons/realtime_edit.png" label="command.realtime.edit">
@@ -15,6 +15,6 @@
     </action>
 
   </extension>
-	
-    
+
+
 </component>
