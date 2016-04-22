@@ -1,9 +1,0 @@
-Manifest-Version: 1.0
-Bundle-Vendor: Nuxeo
-Bundle-ActivationPolicy: lazy
-Bundle-ClassPath: .
-Bundle-Version: 5.7
-Bundle-Name: nuxeo-realtime-edit-api
-Bundle-ManifestVersion: 2
-Bundle-SymbolicName: org.nuxeo.platform.realtime.edit.api;singleton:=true
-Bundle-RequiredExecutionEnvironment: JavaSE-1.6
